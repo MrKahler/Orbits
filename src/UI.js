@@ -348,14 +348,13 @@ export class UI {
   }
 
   _updateInfoPanel() {
-    const infoEl     = this._el('info-panel');
-    const burnEl     = this._el('burn-panel');
-    const maneuverEl = this._el('maneuver-panel');
-    const sel        = this.sim.selected;
+    const infoEl = this._el('info-panel');
+    const sel    = this.sim.selected;
 
     if (!sel) {
       if (infoEl) infoEl.innerHTML = '<div class="hint">Click to select an object<br><small>Scroll: zoom · Drag: pan</small></div>';
-      this._hide('burn-panel'); this._hide('maneuver-panel');
+      this._hide('vessel-hud');
+      this._hide('maneuver-panel');
       return;
     }
 
@@ -367,49 +366,64 @@ export class UI {
         <div class="info-row"><span>μ</span><span>${sel.mu.toExponential(4)} km³/s²</span></div>
         <div class="info-row"><span>Speed</span><span>${sel.velocity.mag().toFixed(3)} km/s</span></div>
       `;
-      this._hide('burn-panel'); this._hide('maneuver-panel');
+      this._hide('vessel-hud');
+      this._hide('maneuver-panel');
       return;
     }
 
-    // Spacecraft
+    // Spacecraft — show HUD and maneuver panel
     if (sel.type === 'spacecraft') {
-      const dom  = getDominantBody(sel.position, this.sim.bodies);
+      const dom = getDominantBody(sel.position, this.sim.bodies);
       let elHtml = '';
+      let pe = '—', ap = '—', period = '—', ecc = '—', alt = '—', spd = '—';
+
       if (dom) {
         const relPos = sel.position.sub(dom.position);
         const relVel = sel.velocity.sub(dom.velocity);
         try {
-          const el  = orbitalElements(relPos, relVel, dom.mu);
+          const el = orbitalElements(relPos, relVel, dom.mu);
           if (el && !isNaN(el.a)) {
-            const alt = (relPos.mag() - dom.radius).toFixed(0);
-            const pe  = (el.rPe - dom.radius).toFixed(0);
-            const ap  = el.energy < 0 ? (el.rAp - dom.radius).toFixed(0) : '∞ (escape)';
-            const spd = relVel.mag().toFixed(3);
+            alt    = `${Number((relPos.mag() - dom.radius).toFixed(0)).toLocaleString()} km`;
+            spd    = `${relVel.mag().toFixed(3)} km/s`;
+            pe     = `${Number((el.rPe - dom.radius).toFixed(0)).toLocaleString()} km`;
+            ap     = el.energy < 0 ? `${Number((el.rAp - dom.radius).toFixed(0)).toLocaleString()} km` : '∞ escape';
+            ecc    = el.e.toFixed(5);
+            period = el.energy < 0 ? fmtTime(el.period) : '—';
+
             elHtml = `
               <div class="info-subtitle">↻ ${dom.name}</div>
-              <div class="info-row"><span>Altitude</span><span>${Number(alt).toLocaleString()} km</span></div>
-              <div class="info-row"><span>Periapsis</span><span>${Number(pe).toLocaleString()} km</span></div>
+              <div class="info-row"><span>Altitude</span><span>${alt}</span></div>
+              <div class="info-row"><span>Speed</span><span>${spd}</span></div>
+              <div class="info-row"><span>Periapsis</span><span>${pe}</span></div>
               <div class="info-row"><span>Apoapsis</span><span>${ap}</span></div>
-              <div class="info-row"><span>Eccentricity</span><span>${el.e.toFixed(5)}</span></div>
-              <div class="info-row"><span>Period</span><span>${el.energy < 0 ? fmtTime(el.period) : '—'}</span></div>
-              <div class="info-row"><span>Speed</span><span>${spd} km/s</span></div>
+              <div class="info-row"><span>Eccentricity</span><span>${ecc}</span></div>
+              <div class="info-row"><span>Period</span><span>${period}</span></div>
             `;
           }
         } catch { /* ignore */ }
       }
+
+      // Right panel info block
       infoEl.innerHTML = `
         <div class="info-name">${sel.name}${sel.crashed ? ' 💥' : ''}</div>
         ${elHtml}
       `;
-      this._show('burn-panel');
-      this._show('maneuver-panel');
-      if (sel.crashed) {
-        burnEl.style.opacity = '0.4';
-        burnEl.style.pointerEvents = 'none';
-      } else {
-        burnEl.style.opacity = '';
-        burnEl.style.pointerEvents = '';
+
+      // HUD — always visible at bottom of canvas
+      this._show('vessel-hud');
+      const hud = this._el('vessel-hud');
+      if (hud) {
+        hud.style.opacity = sel.crashed ? '0.5' : '1';
+        hud.style.pointerEvents = sel.crashed ? 'none' : '';
       }
+      this._setText('hud-name', sel.name + (sel.crashed ? ' 💥 CRASHED' : ''));
+      this._setText('hud-stats', dom ? `↻ ${dom.name}  |  Alt: ${alt}  |  ${spd}` : '');
+      this._setText('hud-pe',     pe);
+      this._setText('hud-ap',     ap);
+      this._setText('hud-period', period);
+      this._setText('hud-ecc',    ecc);
+
+      this._show('maneuver-panel');
     }
   }
 
@@ -453,6 +467,7 @@ export class UI {
   _show(id) { const e = this._el(id); if (e) e.style.display = ''; }
   _hide(id) { const e = this._el(id); if (e) e.style.display = 'none'; }
   _setStatus(id, txt) { const e = this._el(id); if (e) e.innerHTML = txt; }
+  _setText(id, txt) { const e = this._el(id); if (e) e.textContent = txt; }
 }
 
 // ------------------------------------------------------------------

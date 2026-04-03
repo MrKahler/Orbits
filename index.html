@@ -45,6 +45,33 @@
   <div id="main">
     <canvas id="sim-canvas"></canvas>
 
+    <!-- ===== VESSEL HUD — floats over canvas bottom ===== -->
+    <div id="vessel-hud" style="display:none">
+      <div class="hud-left">
+        <div class="hud-name" id="hud-name">VESSEL</div>
+        <div class="hud-stats" id="hud-stats"></div>
+      </div>
+      <div class="hud-center">
+        <div class="hud-dv-row">
+          <span class="hud-label">Δv</span>
+          <input id="burn-amount" type="number" min="0.001" max="20" step="0.01" value="0.1" />
+          <span class="hud-label">km/s</span>
+        </div>
+        <div class="hud-burn-row">
+          <button class="btn hud-btn hud-pro"   data-burn="pro">▲ PRO</button>
+          <button class="btn hud-btn hud-norm"  data-burn="norm">◄ NML</button>
+          <button class="btn hud-btn hud-norm"  data-burn="anti">ANT ►</button>
+          <button class="btn hud-btn hud-retro" data-burn="retro">▼ RET</button>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-stat-row"><span class="hud-key">Pe</span><span id="hud-pe" class="hud-val">—</span></div>
+        <div class="hud-stat-row"><span class="hud-key">Ap</span><span id="hud-ap" class="hud-val">—</span></div>
+        <div class="hud-stat-row"><span class="hud-key">T</span> <span id="hud-period" class="hud-val">—</span></div>
+        <div class="hud-stat-row"><span class="hud-key">e</span> <span id="hud-ecc" class="hud-val">—</span></div>
+      </div>
+    </div>
+
     <!-- ===== RIGHT PANEL ===== -->
     <div id="right-panel">
 
@@ -60,30 +87,6 @@
         <button id="btn-delete" class="btn btn-xs btn-red btn-full" style="margin-top:6px">
           ✕ Delete Selected
         </button>
-      </div>
-
-      <!-- Burn controls — hidden until spacecraft selected -->
-      <div id="burn-panel" class="panel-block" style="display:none">
-        <div class="panel-title">IMPULSIVE BURNS</div>
-        <div class="burn-row">
-          <label>Δv</label>
-          <input id="burn-amount" type="number" min="0.001" max="20" step="0.01" value="0.1" />
-          <span style="color:var(--dim)">km/s</span>
-        </div>
-        <div class="burn-grid">
-          <div></div>
-          <button class="btn btn-sm btn-yellow" data-burn="pro">▲ Pro</button>
-          <div></div>
-          <button class="btn btn-sm" data-burn="anti">◄ Anti-N</button>
-          <div class="burn-mid">BURN</div>
-          <button class="btn btn-sm" data-burn="norm">Norm ►</button>
-          <div></div>
-          <button class="btn btn-sm btn-yellow" data-burn="retro">▼ Retro</button>
-          <div></div>
-        </div>
-        <div style="font-size:9px;color:var(--dim);margin-top:5px;text-align:center">
-          Pro/Retro: along velocity · Norm/Anti: perpendicular
-        </div>
       </div>
 
       <!-- Maneuver panel — hidden until spacecraft selected -->

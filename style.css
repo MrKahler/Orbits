@@ -298,6 +298,89 @@ input[type="number"]:focus {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Vessel HUD — floating burn-control bar over canvas                 */
+/* ------------------------------------------------------------------ */
+
+#vessel-hud {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 220px;          /* stop short of the right panel */
+  background: rgba(5, 8, 20, 0.88);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 20px;
+  z-index: 20;
+}
+
+.hud-left, .hud-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hud-right { text-align: right; }
+
+.hud-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.hud-stats {
+  font-size: 10px;
+  color: var(--dim);
+}
+
+.hud-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.hud-dv-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+.hud-label { color: var(--dim); }
+
+.hud-burn-row {
+  display: flex;
+  gap: 5px;
+}
+
+.hud-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+.hud-pro   { border-color: #886600; color: var(--yellow); }
+.hud-pro:hover { background: rgba(255,200,50,0.18); }
+.hud-retro { border-color: #885500; color: #ff9944; }
+.hud-retro:hover { background: rgba(255,140,50,0.18); }
+.hud-norm  { border-color: #224488; color: #88aaff; }
+.hud-norm:hover { background: rgba(80,140,255,0.18); }
+
+.hud-stat-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.hud-key { color: var(--dim); }
+.hud-val { color: #aaddff; min-width: 70px; text-align: right; }
+
+/* ------------------------------------------------------------------ */
 /*  Scrollbar                                                           */
 /* ------------------------------------------------------------------ */
 

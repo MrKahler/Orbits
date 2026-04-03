@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbital Mechanics Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== TOP TOOLBAR ===================== -->
+  <div id="toolbar">
+    <span class="tb-logo">ORBITS</span>
+
+    <div class="tb-group">
+      <span class="tb-label">MODE</span>
+      <button class="btn btn-sm active" data-mode="select">✦ Select</button>
+      <button class="btn btn-sm" data-mode="placeBody" data-preset="EARTH">+ Earth</button>
+      <button class="btn btn-sm" data-mode="placeBody" data-preset="MOON">+ Moon</button>
+      <button class="btn btn-sm" data-mode="placeBody" data-preset="MARS">+ Mars</button>
+      <button class="btn btn-sm" data-mode="placeBody" data-preset="SUN">+ Sun</button>
+      <button class="btn btn-sm" data-mode="placeCraft">+ Vessel</button>
+    </div>
+
+    <div class="tb-group">
+      <span class="tb-label">PRESETS</span>
+      <button id="btn-preset-leo"  class="btn btn-sm">LEO Vessel</button>
+      <button id="btn-preset-moon" class="btn btn-sm">Add Moon</button>
+    </div>
+
+    <div class="tb-group">
+      <span class="tb-label">VIEW</span>
+      <button id="btn-view-earth" class="btn btn-sm">Earth</button>
+      <button id="btn-view-moon"  class="btn btn-sm">System</button>
+      <button id="btn-center"     class="btn btn-sm">Focus</button>
+    </div>
+
+    <div class="tb-group tb-right">
+      <span id="sim-time">T+ 0m 0s  ×1</span>
+    </div>
+  </div>
+
+  <!-- ===================== MAIN AREA ===================== -->
+  <div id="main">
+    <canvas id="sim-canvas"></canvas>
+
+    <!-- ===== RIGHT PANEL ===== -->
+    <div id="right-panel">
+
+      <!-- Object info -->
+      <div class="panel-block">
+        <div class="panel-title">OBJECT INFO</div>
+        <div id="info-panel">
+          <div class="hint">
+            Click to select an object<br>
+            <small>Scroll: zoom · Drag: pan</small>
+          </div>
+        </div>
+        <button id="btn-delete" class="btn btn-xs btn-red btn-full" style="margin-top:6px">
+          ✕ Delete Selected
+        </button>
+      </div>
+
+      <!-- Burn controls — hidden until spacecraft selected -->
+      <div id="burn-panel" class="panel-block" style="display:none">
+        <div class="panel-title">IMPULSIVE BURNS</div>
+        <div class="burn-row">
+          <label>Δv</label>
+          <input id="burn-amount" type="number" min="0.001" max="20" step="0.01" value="0.1" />
+          <span style="color:var(--dim)">km/s</span>
+        </div>
+        <div class="burn-grid">
+          <div></div>
+          <button class="btn btn-sm btn-yellow" data-burn="pro">▲ Pro</button>
+          <div></div>
+          <button class="btn btn-sm" data-burn="anti">◄ Anti-N</button>
+          <div class="burn-mid">BURN</div>
+          <button class="btn btn-sm" data-burn="norm">Norm ►</button>
+          <div></div>
+          <button class="btn btn-sm btn-yellow" data-burn="retro">▼ Retro</button>
+          <div></div>
+        </div>
+        <div style="font-size:9px;color:var(--dim);margin-top:5px;text-align:center">
+          Pro/Retro: along velocity · Norm/Anti: perpendicular
+        </div>
+      </div>
+
+      <!-- Maneuver panel — hidden until spacecraft selected -->
+      <div id="maneuver-panel" class="panel-block" style="display:none">
+        <div class="panel-title">MANEUVERS</div>
+
+        <!-- Hohmann Transfer -->
+        <div class="mnv-section">
+          <div class="mnv-title">⇄ Hohmann Transfer</div>
+          <div class="mnv-row">
+            <label>Target alt.</label>
+            <input id="hohmann-alt" type="number" min="100" max="999999" step="100" value="10000" style="width:72px" />
+            <span style="color:var(--dim);font-size:10px">km</span>
+          </div>
+          <button id="btn-hohmann" class="btn btn-sm btn-full">Calculate</button>
+          <div id="hohmann-status" class="status-txt"></div>
+          <button id="btn-exec-hohmann" class="btn btn-exec btn-full" style="display:none">
+            ▶ Execute Burn 1  (Burn 2 auto-fires)
+          </button>
+          <button id="btn-cancel-hohmann" class="btn btn-xs btn-full" style="margin-top:3px">
+            ✕ Cancel
+          </button>
+        </div>
+
+        <!-- Free Return Trajectory -->
+        <div class="mnv-section">
+          <div class="mnv-title">∞ Free Return Trajectory</div>
+          <div style="font-size:9px;color:var(--dim);margin-bottom:5px;line-height:1.5">
+            Calculates Apollo-style figure-8 trajectory around the Moon returning to Earth
+            without additional burns.
+          </div>
+          <button id="btn-free-return" class="btn btn-sm btn-full">Calculate TLI</button>
+          <div id="fr-status" class="status-txt"></div>
+          <button id="btn-exec-fr" class="btn btn-exec btn-full" style="display:none">
+            ▶ Execute TLI Burn
+          </button>
+          <button id="btn-cancel-fr" class="btn btn-xs btn-full" style="margin-top:3px">
+            ✕ Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="panel-block" style="font-size:9px;color:var(--dim);line-height:1.7">
+        <div class="panel-title">TIPS</div>
+        <div>F — focus camera on selected</div>
+        <div>Space — pause / resume</div>
+        <div>Del — delete selected</div>
+        <div>Esc — deselect</div>
+        <div>Scroll — zoom in/out</div>
+        <div style="margin-top:6px;color:#3a6080">
+          Place a vessel in LEO, then use Hohmann Transfer to raise orbit, or Free Return
+          to arc around the Moon.
+        </div>
+      </div>
+
+    </div><!-- /right-panel -->
+  </div><!-- /main -->
+
+  <!-- ===================== BOTTOM BAR ===================== -->
+  <div id="bottom-bar">
+    <div class="warp-group">
+      <button id="btn-pause" class="btn btn-sm">⏸ Pause</button>
+      <span class="warp-label" style="margin-left:8px">TIME WARP</span>
+      <button class="btn btn-sm btn-xs" data-warp="0.1">0.1×</button>
+      <button class="btn btn-sm btn-xs active" data-warp="1">1×</button>
+      <button class="btn btn-sm btn-xs" data-warp="10">10×</button>
+      <button class="btn btn-sm btn-xs" data-warp="100">100×</button>
+      <button class="btn btn-sm btn-xs" data-warp="1000">1k×</button>
+      <button class="btn btn-sm btn-xs" data-warp="10000">10k×</button>
+      <button class="btn btn-sm btn-xs" data-warp="100000">100k×</button>
+    </div>
+    <div class="kb-hint">
+      RK4 N-body integration · Hohmann transfer · Free-return trajectory search
+    </div>
+  </div>
+
+</div><!-- /app -->
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

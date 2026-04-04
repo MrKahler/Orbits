@@ -19,7 +19,7 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 #app {
@@ -37,16 +37,16 @@ html, body {
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 14px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  min-height: 38px;
+  min-height: 42px;
   z-index: 10;
 }
 
 .tb-logo {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: bold;
   color: var(--accent);
   letter-spacing: 3px;
@@ -56,18 +56,18 @@ html, body {
 .tb-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .tb-label {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--dim);
   letter-spacing: 1px;
   margin-right: 2px;
 }
 
 #sim-time {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--green);
   letter-spacing: 1px;
   white-space: nowrap;
@@ -100,7 +100,7 @@ html, body {
 /* ------------------------------------------------------------------ */
 
 #right-panel {
-  width: 215px;
+  width: 230px;
   background: var(--panel);
   border-left: 1px solid var(--border);
   overflow-y: auto;
@@ -116,41 +116,41 @@ html, body {
   background: rgba(255,255,255,0.025);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 8px;
+  padding: 9px;
 }
 
 .panel-title {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--accent);
   letter-spacing: 2px;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
-  margin-bottom: 7px;
+  padding-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 /* Info panel */
-#info-panel { font-size: 11px; }
+#info-panel { font-size: 13px; }
 
 .info-name {
-  font-size: 13px;
+  font-size: 15px;
   color: #fff;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .info-subtitle {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--dim);
   letter-spacing: 1px;
-  margin: 5px 0 2px;
+  margin: 6px 0 3px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   gap: 4px;
-  padding: 1px 0;
-  line-height: 1.5;
+  padding: 2px 0;
+  line-height: 1.6;
 }
 .info-row span:first-child { color: var(--dim); }
 .info-row span:last-child  { color: #aaddff; text-align: right; }
@@ -160,66 +160,40 @@ html, body {
   font-style: italic;
   text-align: center;
   padding: 10px 4px;
-  line-height: 1.7;
-  font-size: 11px;
-}
-
-/* Burn panel */
-.burn-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 7px;
-  font-size: 11px;
-}
-.burn-row label { color: var(--dim); white-space: nowrap; }
-.burn-row input { width: 64px; }
-
-.burn-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 3px;
-  align-items: center;
-  text-align: center;
-}
-.burn-mid {
-  font-size: 8px;
-  color: var(--dim);
-  padding: 2px;
-  text-align: center;
+  line-height: 1.8;
+  font-size: 13px;
 }
 
 /* Maneuver panel */
 .mnv-section {
-  margin-bottom: 10px;
-  padding-bottom: 10px;
+  margin-bottom: 11px;
+  padding-bottom: 11px;
   border-bottom: 1px solid var(--border);
 }
 .mnv-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
 .mnv-title {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--yellow);
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   letter-spacing: 0.5px;
 }
 
 .mnv-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 4px;
-  font-size: 10px;
+  gap: 5px;
+  margin-bottom: 5px;
+  font-size: 12px;
 }
 .mnv-row label { color: var(--dim); white-space: nowrap; }
 
 .status-txt {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--green);
-  margin: 4px 0;
-  min-height: 13px;
-  line-height: 1.4;
+  margin: 5px 0;
+  min-height: 15px;
+  line-height: 1.5;
 }
 
 /* ------------------------------------------------------------------ */
@@ -231,22 +205,22 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 4px 12px;
+  padding: 5px 14px;
   background: var(--panel);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
   flex-wrap: wrap;
-  min-height: 34px;
+  min-height: 36px;
 }
 
 .warp-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
-.warp-label { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
+.warp-label { font-size: 11px; color: var(--dim); letter-spacing: 1px; }
 
-.kb-hint { font-size: 9px; color: var(--dim); }
+.kb-hint { font-size: 11px; color: var(--dim); }
 
 /* ------------------------------------------------------------------ */
 /*  Buttons                                                             */
@@ -256,10 +230,10 @@ html, body {
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 3px 8px;
+  padding: 4px 10px;
   cursor: pointer;
   font-family: var(--font);
-  font-size: 11px;
+  font-size: 13px;
   border-radius: 3px;
   transition: background 0.1s, border-color 0.1s;
   white-space: nowrap;
@@ -267,9 +241,9 @@ html, body {
 }
 .btn:hover        { background: rgba(255,255,255,0.1); border-color: var(--accent); }
 .btn.active       { background: rgba(68,153,255,0.18); border-color: var(--accent); color: #aaddff; }
-.btn-xs           { font-size: 9px; padding: 2px 5px; }
-.btn-sm           { font-size: 10px; }
-.btn-full         { width: 100%; margin-top: 3px; }
+.btn-xs           { font-size: 11px; padding: 3px 6px; }
+.btn-sm           { font-size: 12px; }
+.btn-full         { width: 100%; margin-top: 4px; }
 .btn-green        { border-color: #226644; color: var(--green); }
 .btn-green:hover  { background: rgba(68,238,153,0.12); }
 .btn-red          { border-color: #662222; color: var(--red); }
@@ -287,9 +261,9 @@ input[type="number"], input[type="text"] {
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 2px 5px;
+  padding: 3px 6px;
   font-family: var(--font);
-  font-size: 11px;
+  font-size: 13px;
   border-radius: 2px;
 }
 input[type="number"]:focus {
@@ -305,14 +279,14 @@ input[type="number"]:focus {
   position: absolute;
   bottom: 0;
   left: 0;
-  right: 220px;          /* stop short of the right panel */
-  background: rgba(5, 8, 20, 0.88);
+  right: 230px;
+  background: rgba(5, 8, 20, 0.90);
   border-top: 1px solid var(--border);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 8px 20px;
+  padding: 9px 22px;
   z-index: 20;
 }
 
@@ -320,19 +294,19 @@ input[type="number"]:focus {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 .hud-right { text-align: right; }
 
 .hud-name {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   color: #ffffff;
   letter-spacing: 1px;
 }
 
 .hud-stats {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--dim);
 }
 
@@ -340,26 +314,26 @@ input[type="number"]:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   flex-shrink: 0;
 }
 
 .hud-dv-row {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 13px;
 }
 .hud-label { color: var(--dim); }
 
 .hud-burn-row {
   display: flex;
-  gap: 5px;
+  gap: 6px;
 }
 
 .hud-btn {
-  padding: 4px 10px;
-  font-size: 11px;
+  padding: 5px 12px;
+  font-size: 13px;
   font-weight: bold;
   letter-spacing: 0.5px;
 }
@@ -373,12 +347,12 @@ input[type="number"]:focus {
 .hud-stat-row {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
-  font-size: 10px;
-  line-height: 1.5;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
 }
 .hud-key { color: var(--dim); }
-.hud-val { color: #aaddff; min-width: 70px; text-align: right; }
+.hud-val { color: #aaddff; min-width: 80px; text-align: right; }
 
 /* ------------------------------------------------------------------ */
 /*  Scrollbar                                                           */

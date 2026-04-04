@@ -143,10 +143,10 @@ export class Renderer {
     ctx.stroke();
 
     // Label
-    ctx.fillStyle = 'rgba(200,220,255,0.9)';
-    ctx.font = 'bold 11px monospace';
+    ctx.fillStyle = 'rgba(200,220,255,0.95)';
+    ctx.font = 'bold 14px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(body.name, sp.x, sp.y + r + 14);
+    ctx.fillText(body.name, sp.x, sp.y + r + 17);
   }
 
   _drawCraftTrail(craft) {
@@ -175,11 +175,10 @@ export class Renderer {
       const p = this.w2s(path[i].x, path[i].y);
       ctx.lineTo(p.x, p.y);
     }
-    ctx.strokeStyle = selected ? 'rgba(120,210,255,0.55)' : 'rgba(100,180,255,0.25)';
-    ctx.lineWidth = selected ? 1.5 : 1;
-    ctx.setLineDash([5, 5]);
+    // Solid line — this is the actual N-body trajectory
+    ctx.strokeStyle = selected ? 'rgba(130,220,255,0.90)' : 'rgba(100,190,255,0.55)';
+    ctx.lineWidth = selected ? 2 : 1.5;
     ctx.stroke();
-    ctx.setLineDash([]);
   }
 
   _drawSpacecraft(craft, selected) {
@@ -252,7 +251,7 @@ export class Renderer {
 
     const ctx = this.ctx;
 
-    // Faint Keplerian ellipse
+    // Keplerian reference ellipse — dashed, clearly visible
     if (el.energy < 0) {
       const pts = orbitEllipsePoints(dom.position, el, 200);
       if (pts.length > 1) {
@@ -264,9 +263,11 @@ export class Renderer {
           ctx.lineTo(p.x, p.y);
         }
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(80,150,255,0.18)';
+        ctx.strokeStyle = 'rgba(80,160,255,0.45)';
         ctx.lineWidth = 1;
+        ctx.setLineDash([6, 6]);
         ctx.stroke();
+        ctx.setLineDash([]);
       }
     }
 
@@ -284,9 +285,9 @@ export class Renderer {
     ctx.fillStyle = color;
     ctx.fill();
     ctx.fillStyle = color;
-    ctx.font = '10px monospace';
+    ctx.font = 'bold 12px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(label, sp.x + 7, sp.y + 4);
+    ctx.fillText(label, sp.x + 7, sp.y + 5);
   }
 
   // ------------------------------------------------------------------

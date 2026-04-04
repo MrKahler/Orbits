@@ -294,9 +294,27 @@ export class UI {
   _placeBody(wx, wy) {
     const pr = PRESETS[this.pendingPreset];
     if (!pr) return;
+
+    // Give the new body a circular orbit velocity around the nearest existing body
+    let nearest = null, nearD = Infinity;
+    for (const b of this.sim.bodies) {
+      const d = Math.hypot(b.position.x - wx, b.position.y - wy);
+      if (d < nearD) { nearD = d; nearest = b; }
+    }
+    let vel = Vector2.zero();
+    if (nearest && nearD > nearest.radius) {
+      const v     = Math.sqrt(nearest.mu / nearD);
+      const angle = Math.atan2(wy - nearest.position.y, wx - nearest.position.x);
+      vel = new Vector2(
+        nearest.velocity.x - Math.sin(angle) * v,
+        nearest.velocity.y + Math.cos(angle) * v,
+      );
+    }
+
     const body = new Body({
       name: pr.name, mass: pr.mass, radius: pr.radius, color: pr.color,
       position: new Vector2(wx, wy),
+      velocity: vel,
     });
     this.sim.addBody(body);
     this.sim.selected = body;

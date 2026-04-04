@@ -291,30 +291,37 @@ export class UI {
     this._updateInfoPanel();
   }
 
-  _placeBody(wx, wy) {
-    const pr = PRESETS[this.pendingPreset];
-    if (!pr) return;
-
-    // Give the new body a circular orbit velocity around the nearest existing body
+  /**
+   * Compute a prograde circular-orbit velocity at world point (wx, wy)
+   * around whichever body is closest.  Returns the central body's own
+   * velocity when there are no bodies or the point is inside a body.
+   */
+  _circularOrbitVel(wx, wy) {
     let nearest = null, nearD = Infinity;
     for (const b of this.sim.bodies) {
       const d = Math.hypot(b.position.x - wx, b.position.y - wy);
       if (d < nearD) { nearD = d; nearest = b; }
     }
-    let vel = Vector2.zero();
-    if (nearest && nearD > nearest.radius) {
-      const v     = Math.sqrt(nearest.mu / nearD);
-      const angle = Math.atan2(wy - nearest.position.y, wx - nearest.position.x);
-      vel = new Vector2(
-        nearest.velocity.x - Math.sin(angle) * v,
-        nearest.velocity.y + Math.cos(angle) * v,
-      );
-    }
+    if (!nearest || nearD <= nearest.radius) return Vector2.zero();
 
+    // Orbital speed for a circular orbit at this distance
+    const speed = Math.sqrt(nearest.mu / nearD);
+    // Angle from the central body to the placement point
+    const angle = Math.atan2(wy - nearest.position.y, wx - nearest.position.x);
+    // CCW tangential direction = 90° counter-clockwise from radius
+    return new Vector2(
+      nearest.velocity.x - Math.sin(angle) * speed,
+      nearest.velocity.y + Math.cos(angle) * speed,
+    );
+  }
+
+  _placeBody(wx, wy) {
+    const pr = PRESETS[this.pendingPreset];
+    if (!pr) return;
     const body = new Body({
       name: pr.name, mass: pr.mass, radius: pr.radius, color: pr.color,
       position: new Vector2(wx, wy),
-      velocity: vel,
+      velocity: this._circularOrbitVel(wx, wy),
     });
     this.sim.addBody(body);
     this.sim.selected = body;
@@ -322,25 +329,10 @@ export class UI {
   }
 
   _placeCraft(wx, wy) {
-    // Give it a circular orbit velocity around the nearest body
-    let nearest = null, nearD = Infinity;
-    for (const b of this.sim.bodies) {
-      const d = Math.hypot(b.position.x - wx, b.position.y - wy);
-      if (d < nearD) { nearD = d; nearest = b; }
-    }
-    let vel = Vector2.zero();
-    if (nearest) {
-      const v     = Math.sqrt(nearest.mu / nearD);
-      const angle = Math.atan2(wy - nearest.position.y, wx - nearest.position.x);
-      vel = new Vector2(
-        nearest.velocity.x - Math.sin(angle) * v,
-        nearest.velocity.y + Math.cos(angle) * v,
-      );
-    }
     const craft = new Spacecraft({
       name: `Vessel-${Date.now() % 9999}`,
       position: new Vector2(wx, wy),
-      velocity: vel,
+      velocity: this._circularOrbitVel(wx, wy),
       color: this._randomColor(),
     });
     this.sim.addSpacecraft(craft);

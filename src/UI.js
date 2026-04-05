@@ -255,7 +255,10 @@ export class UI {
       setTimeout(() => {
         const res = this.sim.calculateFreeReturn();
         if (res) {
-          this._setStatus('fr-status', `TLI Δv: ${res.dv.toFixed(3)} km/s`);
+          const waitStr = res.waitTime > 5
+            ? ` — fires in ${fmtTime(res.waitTime)}`
+            : '';
+          this._setStatus('fr-status', `TLI Δv: ${res.dv.toFixed(3)} km/s${waitStr}`);
           this._show('btn-exec-fr');
         } else {
           this._setStatus('fr-status', 'No trajectory found. Try LEO orbit near Moon.');
@@ -263,9 +266,14 @@ export class UI {
       }, 20);
     });
     this._el('btn-exec-fr')?.addEventListener('click', () => {
+      const wait = this.sim.freeReturnWait ?? 0;
       this.sim.executeFreeReturn();
-      this._setStatus('fr-status', 'TLI burn executed!');
       this._hide('btn-exec-fr');
+      if (wait > 5) {
+        this._setStatus('fr-status', `TLI scheduled — unpause, fires in ${fmtTime(wait)}`);
+      } else {
+        this._setStatus('fr-status', 'TLI burn executed!');
+      }
     });
     this._el('btn-cancel-fr')?.addEventListener('click', () => {
       this.sim.cancelFreeReturn();

@@ -17,6 +17,7 @@ export class Simulation {
     this.hohmannData    = null;
     this.freeReturnPath = null;
     this.freeReturnDv   = null;
+    this.freeReturnAngle = null;
 
     // Timed burns: [{ spacecraft, dvMag, executeTime, onExecute }]
     this._scheduledBurns = [];
@@ -33,9 +34,10 @@ export class Simulation {
     this.bodies     = this.bodies.filter(b => b.id !== id);
     this.spacecraft = this.spacecraft.filter(s => s.id !== id);
     if (this.selected?.id === id) this.selected = null;
-    this.hohmannData    = null;
-    this.freeReturnPath = null;
-    this.freeReturnDv   = null;
+    this.hohmannData     = null;
+    this.freeReturnPath  = null;
+    this.freeReturnDv    = null;
+    this.freeReturnAngle = null;
   }
 
   // ------------------------------------------------------------------
@@ -222,58 +224,81 @@ export class Simulation {
 
     const result = this._searchFreeReturn(craft, earth, moon);
     if (result) {
-      this.freeReturnPath = result.path;
-      this.freeReturnDv   = result.dv;
+      this.freeReturnPath  = result.path;
+      this.freeReturnDv    = result.dv;
+      this.freeReturnAngle = result.angle;
     }
     return result;
   }
 
   _searchFreeReturn(craft, earth, moon) {
-    const DT       = 120;             // s per step during search
-    const MAX_TIME = 11 * 86400;      // 11 days
+    const COARSE_DT = 300;   // coarse step for bisection search
+    const FINE_DT   = 120;   // fine step for the final path
+    const MAX_TIME  = 11 * 86400;
 
-    // TLI magnitude range (km/s added prograde on top of current velocity)
-    let dvMin = 2.6, dvMax = 4.5;
-    let best = null;
+    // Compute a dynamic dv search range from the spacecraft's actual orbit.
+    // vTLI  = speed at periapsis of Hohmann transfer from r1 to rMoon (minimum
+    //         speed needed to reach Moon's current distance).
+    // vEsc  = escape speed from r1.
+    // We search within [vTLI - vCraft, vEsc - vCraft] so the spacecraft
+    // reaches at least Moon distance but stays bound to Earth.
+    const r1      = craft.position.distTo(earth.position);
+    const rMoon   = moon.position.distTo(earth.position);
+    const vCraft  = craft.velocity.sub(earth.velocity).mag();
+    const vTLI    = Math.sqrt(2 * earth.mu * rMoon / (r1 * (r1 + rMoon)));
+    const vEsc    = Math.sqrt(2 * earth.mu / r1);
+    const dvLo    = Math.max(0.05, vTLI - vCraft - 0.3);
+    const dvHi    = Math.max(dvLo + 0.2, vEsc   * 0.97 - vCraft);
 
-    for (let iter = 0; iter < 28; iter++) {
-      const dvMid = (dvMin + dvMax) / 2;
-      const res   = this._simFreeReturn(craft, earth, moon, dvMid, DT, MAX_TIME);
+    // Search over burn angles: prograde ± 75° in 15° steps.
+    // This ensures we cover all Moon phase geometries from the current
+    // spacecraft position without needing to advance the simulation.
+    const angles = [];
+    for (let deg = -75; deg <= 75; deg += 15) angles.push(deg * Math.PI / 180);
 
-      if (res.passedMoon && res.returnedEarth) {
-        best = { dv: dvMid, path: res.path };
-        break;
-      }
+    let best = null;  // best partial result (passed Moon, closest Earth return)
 
-      if (!res.passedMoon) {
-        dvMin = dvMid; // too slow — didn't reach Moon
-      } else if (!res.returnedEarth) {
-        // Passed Moon but didn't return — either too fast (overshot) or too slow
-        // Try swapping bracket intelligently
-        // If minDist after Moon passage is trending away, go faster
-        if (res.earthDistAfterMoon < 50000) {
-          best = { dv: dvMid, path: res.path }; // close enough, accept it
-          break;
+    for (const angle of angles) {
+      let lo = dvLo, hi = dvHi;
+
+      for (let iter = 0; iter < 22; iter++) {
+        const mid = (lo + hi) / 2;
+        const res = this._simFreeReturn(craft, earth, moon, mid, angle, COARSE_DT, MAX_TIME);
+
+        if (res.passedMoon && res.returnedEarth) {
+          // Perfect hit — regenerate with finer dt for display quality
+          const fine = this._simFreeReturn(craft, earth, moon, mid, angle, FINE_DT, MAX_TIME);
+          return { dv: mid, angle, path: fine.path };
         }
-        // Try lowering dvMax to bring the trajectory back
-        dvMax = dvMid;
+
+        if (!res.passedMoon) {
+          lo = mid;  // not enough energy to reach Moon — push lower bound up
+        } else {
+          // Passed Moon SOI but didn't return to Earth — track as candidate
+          if (!best || res.earthDistAfterMoon < best.earthDistAfterMoon) {
+            best = { dv: mid, angle, path: res.path,
+                     earthDistAfterMoon: res.earthDistAfterMoon };
+          }
+          hi = mid;  // reduce dv; more Moon gravity bending needed
+        }
       }
     }
 
-    // Last resort: return whatever we found
-    if (!best) {
-      const dvMid = (dvMin + dvMax) / 2;
-      const res   = this._simFreeReturn(craft, earth, moon, dvMid, DT, MAX_TIME);
-      if (res.passedMoon) best = { dv: dvMid, path: res.path };
+    // No perfect free-return found; return the best partial (passed Moon)
+    if (best) {
+      const fine = this._simFreeReturn(
+        craft, earth, moon, best.dv, best.angle, FINE_DT, MAX_TIME);
+      return { dv: best.dv, angle: best.angle, path: fine.path };
     }
 
-    return best;
+    return null;
   }
 
-  _simFreeReturn(craft, earth, moon, burnMag, dt, maxTime) {
-    // Initial spacecraft state after TLI burn
+  _simFreeReturn(craft, earth, moon, burnMag, burnAngle, dt, maxTime) {
+    // Apply TLI burn at burnAngle radians from prograde
+    const burnDir = craft.velocity.norm().rot(burnAngle);
     let cPos = craft.position.clone();
-    let cVel = craft.velocity.add(craft.velocity.norm().mul(burnMag));
+    let cVel = craft.velocity.add(burnDir.mul(burnMag));
 
     // Clone body states
     const bSnaps = this.bodies.map(b => ({
@@ -291,6 +316,7 @@ export class Simulation {
     let pastMoonSOI     = false;
     let earthDistAfterMoon = Infinity;
     let simTime         = 0;
+    let sampleTick      = 0;
     const sampleEvery   = Math.max(1, Math.round(3600 / dt)); // ~1 sample per hour
 
     while (simTime < maxTime) {
@@ -307,8 +333,9 @@ export class Simulation {
       const { pos, vel } = rk4Step(cPos, cVel, bSnaps, dt);
       cPos = pos; cVel = vel;
       simTime += dt;
+      sampleTick++;
 
-      if (simTime % (dt * sampleEvery) < dt) path.push(cPos.clone());
+      if (sampleTick % sampleEvery === 0) path.push(cPos.clone());
 
       const moonDist  = cPos.distTo(mSnap.position);
       const earthDist = cPos.distTo(eSnap.position);
@@ -337,13 +364,17 @@ export class Simulation {
   executeFreeReturn() {
     if (!this.selected || this.selected.type !== 'spacecraft') return;
     if (this.freeReturnDv == null) return;
-    this.selected.burnPrograde(this.freeReturnDv);
-    this.freeReturnPath = null;
-    this.freeReturnDv   = null;
+    const craft    = this.selected;
+    const burnDir  = craft.velocity.norm().rot(this.freeReturnAngle ?? 0);
+    craft.applyBurn(burnDir.mul(this.freeReturnDv));
+    this.freeReturnPath  = null;
+    this.freeReturnDv    = null;
+    this.freeReturnAngle = null;
   }
 
   cancelFreeReturn() {
-    this.freeReturnPath = null;
-    this.freeReturnDv   = null;
+    this.freeReturnPath  = null;
+    this.freeReturnDv    = null;
+    this.freeReturnAngle = null;
   }
 }

@@ -180,7 +180,10 @@ export class UI {
         if (dir === 'norm')  craft.burnNormal( mag);
         if (dir === 'anti')  craft.burnNormal(-mag);
 
-        if (this.sim.paused && craft.pausedSnapshot) this._show('btn-undo-burn');
+        if (this.sim.paused && craft.pausedSnapshot) {
+          const undoBtn = this._el('btn-undo-burn');
+          if (undoBtn) undoBtn.style.display = 'block';
+        }
         this._updateInfoPanel();
       });
     });

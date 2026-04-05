@@ -44,7 +44,17 @@ export class Simulation {
 
   update(ts) {
     if (this._lastTs === null) { this._lastTs = ts; return; }
-    if (this.paused)           { this._lastTs = ts; return; }
+    if (this.paused) {
+      this._lastTs = ts;
+      // Still recompute predictions while paused so burn previews update.
+      for (const craft of this.spacecraft) {
+        if (craft.pathDirty && !craft.crashed) {
+          this._updatePrediction(craft);
+          craft.pathDirty = false;
+        }
+      }
+      return;
+    }
 
     let realDt = Math.min((ts - this._lastTs) / 1000, 0.1); // cap at 100 ms
     this._lastTs = ts;

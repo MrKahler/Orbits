@@ -40,6 +40,9 @@ export class Spacecraft {
     this.predictedPath = [];
     this.pathDirty = true;
     this.crashed = false;
+    // Saved when the first burn is applied while the simulation is paused.
+    // { velocity: Vector2, path: Vector2[] }  — cleared on unpause or undo.
+    this.pausedSnapshot = null;
   }
 
   applyBurn(dv) {

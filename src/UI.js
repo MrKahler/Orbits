@@ -99,8 +99,7 @@ export class UI {
     switch (e.key) {
       case ' ':
         e.preventDefault();
-        this.sim.paused = !this.sim.paused;
-        this._el('btn-pause').textContent = this.sim.paused ? '▶ Resume' : '⏸ Pause';
+        this._togglePause();
         break;
       case 'Escape':
         this.sim.selected = null;
@@ -120,6 +119,17 @@ export class UI {
           this.sim.selected ? this.sim.selected.position.y : 0,
         );
         break;
+    }
+  }
+
+  _togglePause() {
+    const wasPaused = this.sim.paused;
+    this.sim.paused = !this.sim.paused;
+    this._el('btn-pause').textContent = this.sim.paused ? '▶ Resume' : '⏸ Pause';
+    if (wasPaused) {
+      // Resuming — commit pending burns, clear all snapshots
+      for (const s of this.sim.spacecraft) s.pausedSnapshot = null;
+      this._hide('btn-undo-burn');
     }
   }
 
@@ -147,24 +157,44 @@ export class UI {
     });
 
     // Pause
-    this._el('btn-pause')?.addEventListener('click', () => {
-      this.sim.paused = !this.sim.paused;
-      this._el('btn-pause').textContent = this.sim.paused ? '▶ Resume' : '⏸ Pause';
-    });
+    this._el('btn-pause')?.addEventListener('click', () => this._togglePause());
 
     // Burn buttons
     this._q('[data-burn]').forEach(btn => {
       btn.addEventListener('click', () => {
         const craft = this.sim.selected;
         if (!craft || craft.type !== 'spacecraft' || craft.crashed) return;
+
+        // First burn while paused — snapshot current state for undo/preview
+        if (this.sim.paused && !craft.pausedSnapshot) {
+          craft.pausedSnapshot = {
+            velocity: craft.velocity.clone(),
+            path: craft.predictedPath.slice(),
+          };
+        }
+
         const mag = parseFloat(this._el('burn-amount')?.value || '0.1');
         const dir = btn.dataset.burn;
         if (dir === 'pro')   craft.burnPrograde( mag);
         if (dir === 'retro') craft.burnPrograde(-mag);
         if (dir === 'norm')  craft.burnNormal( mag);
         if (dir === 'anti')  craft.burnNormal(-mag);
+
+        if (this.sim.paused && craft.pausedSnapshot) this._show('btn-undo-burn');
         this._updateInfoPanel();
       });
+    });
+
+    // Undo paused burn
+    this._el('btn-undo-burn')?.addEventListener('click', () => {
+      const craft = this.sim.selected;
+      if (!craft?.pausedSnapshot) return;
+      craft.velocity = craft.pausedSnapshot.velocity.clone();
+      craft.predictedPath = craft.pausedSnapshot.path;
+      craft.pausedSnapshot = null;
+      craft.pathDirty = false;
+      this._hide('btn-undo-burn');
+      this._updateInfoPanel();
     });
 
     // Preset actions

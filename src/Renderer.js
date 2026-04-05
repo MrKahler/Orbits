@@ -164,21 +164,42 @@ export class Renderer {
     ctx.stroke();
   }
 
-  _drawPredictedPath(craft, selected) {
-    const path = craft.predictedPath;
-    if (path.length < 2) return;
+  _drawPolyline(points) {
+    if (points.length < 2) return;
     const ctx = this.ctx;
     ctx.beginPath();
-    const p0 = this.w2s(path[0].x, path[0].y);
+    const p0 = this.w2s(points[0].x, points[0].y);
     ctx.moveTo(p0.x, p0.y);
-    for (let i = 1; i < path.length; i++) {
-      const p = this.w2s(path[i].x, path[i].y);
+    for (let i = 1; i < points.length; i++) {
+      const p = this.w2s(points[i].x, points[i].y);
       ctx.lineTo(p.x, p.y);
     }
-    // Solid line — this is the actual N-body trajectory
-    ctx.strokeStyle = selected ? 'rgba(130,220,255,0.90)' : 'rgba(100,190,255,0.55)';
-    ctx.lineWidth = selected ? 2 : 1.5;
     ctx.stroke();
+  }
+
+  _drawPredictedPath(craft, selected) {
+    const ctx = this.ctx;
+
+    if (craft.pausedSnapshot?.path?.length > 1) {
+      // ── Paused burn-preview mode ──────────────────────────────────────
+      // Original orbit (before burns) in bright cyan
+      ctx.strokeStyle = 'rgba(80,210,255,0.85)';
+      ctx.lineWidth = 2.5;
+      this._drawPolyline(craft.pausedSnapshot.path);
+
+      // Proposed orbit (after burns) in vivid orange — high contrast
+      if (craft.predictedPath.length > 1) {
+        ctx.strokeStyle = 'rgba(255,165,30,0.95)';
+        ctx.lineWidth = 3;
+        this._drawPolyline(craft.predictedPath);
+      }
+    } else {
+      // ── Normal mode ───────────────────────────────────────────────────
+      if (craft.predictedPath.length < 2) return;
+      ctx.strokeStyle = selected ? 'rgba(130,220,255,0.90)' : 'rgba(100,190,255,0.65)';
+      ctx.lineWidth = selected ? 2.5 : 1.5;
+      this._drawPolyline(craft.predictedPath);
+    }
   }
 
   _drawSpacecraft(craft, selected) {
@@ -263,8 +284,8 @@ export class Renderer {
           ctx.lineTo(p.x, p.y);
         }
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(80,160,255,0.45)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(80,160,255,0.55)';
+        ctx.lineWidth = 1.5;
         ctx.setLineDash([6, 6]);
         ctx.stroke();
         ctx.setLineDash([]);

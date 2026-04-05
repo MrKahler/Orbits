@@ -343,6 +343,8 @@ input[type="number"]:focus {
 .hud-retro:hover { background: rgba(255,140,50,0.18); }
 .hud-norm  { border-color: #224488; color: #88aaff; }
 .hud-norm:hover { background: rgba(80,140,255,0.18); }
+.hud-undo  { border-color: #884400; color: #ffaa44; letter-spacing: 1px; }
+.hud-undo:hover { background: rgba(255,140,40,0.22); }
 
 .hud-stat-row {
   display: flex;

@@ -343,8 +343,9 @@ input[type="number"]:focus {
 .hud-retro:hover { background: rgba(255,140,50,0.18); }
 .hud-norm  { border-color: #224488; color: #88aaff; }
 .hud-norm:hover { background: rgba(80,140,255,0.18); }
-.hud-undo  { border-color: #884400; color: #ffaa44; letter-spacing: 1px; }
-.hud-undo:hover { background: rgba(255,140,40,0.22); }
+.hud-undo      { border-color: #aa5500; color: #ffbb44; letter-spacing: 1px; font-weight: bold; }
+.hud-undo:hover { background: rgba(255,150,40,0.28); border-color: #ffaa44; }
+.hud-undo-row  { width: 100%; margin-top: 4px; text-align: center; }
 
 .hud-stat-row {
   display: flex;

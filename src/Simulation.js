@@ -236,19 +236,24 @@ export class Simulation {
     const FINE_DT   = 120;   // fine step for the final path
     const MAX_TIME  = 11 * 86400;
 
-    // Compute a dynamic dv search range from the spacecraft's actual orbit.
-    // vTLI  = speed at periapsis of Hohmann transfer from r1 to rMoon (minimum
-    //         speed needed to reach Moon's current distance).
-    // vEsc  = escape speed from r1.
-    // We search within [vTLI - vCraft, vEsc - vCraft] so the spacecraft
-    // reaches at least Moon distance but stays bound to Earth.
+    // Compute the search range for TLI burn magnitude.
+    //
+    // vTLI = periapsis speed for a Hohmann transfer from r1 to Moon's current
+    //        distance — the minimum speed to reach Moon's SOI at all.
+    // vEsc = escape speed from r1.
+    //
+    // IMPORTANT: for LEO, vTLI ≈ 99.15% of vEsc, so a "97% of escape" cap
+    // falls BELOW the Hohmann dv and the spacecraft never reaches the Moon.
+    // We therefore set dvHi to slightly above escape — trajectories that
+    // overshoot will have passedMoon=true / returnedEarth=false and the
+    // bisection will correctly drive hi back down into the bound range.
     const r1      = craft.position.distTo(earth.position);
     const rMoon   = moon.position.distTo(earth.position);
     const vCraft  = craft.velocity.sub(earth.velocity).mag();
     const vTLI    = Math.sqrt(2 * earth.mu * rMoon / (r1 * (r1 + rMoon)));
     const vEsc    = Math.sqrt(2 * earth.mu / r1);
-    const dvLo    = Math.max(0.05, vTLI - vCraft - 0.3);
-    const dvHi    = Math.max(dvLo + 0.2, vEsc   * 0.97 - vCraft);
+    const dvLo    = Math.max(0.05, vTLI - vCraft - 0.1);  // just below Hohmann
+    const dvHi    = vEsc - vCraft + 0.5;                  // slightly above escape
 
     // Search over burn angles: prograde ± 75° in 15° steps.
     // This ensures we cover all Moon phase geometries from the current
